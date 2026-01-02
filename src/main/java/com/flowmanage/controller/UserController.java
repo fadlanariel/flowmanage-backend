@@ -5,12 +5,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.flowmanage.dto.response.ApiResponse;
+import com.flowmanage.security.AuthenticatedUser;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     @GetMapping("/me")
-    public Object me(Authentication authentication) {
-        return authentication.getPrincipal();
+    public ApiResponse<String> me(Authentication authentication) {
+        AuthenticatedUser user =
+            (AuthenticatedUser) authentication.getPrincipal();
+
+        return new ApiResponse<>("Hello " + user.getEmail());
     }
 }
