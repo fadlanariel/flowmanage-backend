@@ -4,6 +4,8 @@ import com.flowmanage.dto.request.LoginRequest;
 import com.flowmanage.dto.request.RegisterRequest;
 import com.flowmanage.entity.User;
 import com.flowmanage.repository.UserRepository;
+import com.flowmanage.security.JwtService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,8 +13,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public void register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -28,7 +32,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public User login(LoginRequest request) {
+    public String login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
@@ -36,6 +40,6 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return user;
+        return jwtService.generateToken(user.getId(), user.getEmail());
     }
 }

@@ -23,7 +23,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResponse<String> login(@Valid @RequestBody LoginRequest request) {
-        authService.login(request);
-        return new ApiResponse<>("Login success (token coming next step)");
+        String token = authService.login(request);
+        return new ApiResponse<>(token);
     }
 }
