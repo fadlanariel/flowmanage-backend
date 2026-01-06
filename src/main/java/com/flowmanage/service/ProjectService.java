@@ -11,7 +11,6 @@ import com.flowmanage.exception.ProjectNotFoundException;
 import com.flowmanage.repository.ProjectRepository;
 
 @Service
-@Transactional(readOnly = true)
 public class ProjectService {
     private final ProjectRepository projectRepository;
     
@@ -19,6 +18,7 @@ public class ProjectService {
         this.projectRepository = projectRepository;
     }
 
+    @Transactional(readOnly = true)
     public Project getProjectById(UUID projectId, UUID userId) {
         return projectRepository.findByIdAndOwnerId(projectId, userId)
                 .orElseGet(() -> {
@@ -28,5 +28,19 @@ public class ProjectService {
 
                     throw new ProjectNotFoundException();
                 });
+    }
+
+    @Transactional
+    public Project createProject(
+        UUID ownerId,
+        String name,
+        String description
+    ) {
+        Project project = new Project();
+        project.setOwnerId(ownerId);
+        project.setName(name);
+        project.setDescription(description);
+        
+        return projectRepository.save(project);
     }
 }

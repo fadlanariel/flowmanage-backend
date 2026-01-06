@@ -16,6 +16,9 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+        // =========================
+        // 400 - Validation Error
+        // =========================
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiErrorResponse> handleValidationException(
                         MethodArgumentNotValidException ex,
@@ -27,74 +30,76 @@ public class GlobalExceptionHandler {
                                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                                 .toList();
 
-                ApiErrorResponse response = new ApiErrorResponse(
-                                HttpStatus.BAD_REQUEST.value(),
-                                "VALIDATION_ERROR",
-                                "Request validation failed",
-                                request.getRequestURI(),
-                                errors);
-
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.badRequest().body(
+                                new ApiErrorResponse(
+                                                400,
+                                                "VALIDATION_ERROR",
+                                                "Request validation failed",
+                                                request.getRequestURI(),
+                                                errors));
         }
 
+        // =========================
+        // 400 - Business Bad Request
+        // =========================
         @ExceptionHandler(BadRequestException.class)
         public ResponseEntity<ApiErrorResponse> handleBadRequest(
                         BadRequestException ex,
                         HttpServletRequest request) {
-
-                ApiErrorResponse response = new ApiErrorResponse(
-                                HttpStatus.BAD_REQUEST.value(),
-                                "BAD_REQUEST",
-                                ex.getMessage(),
-                                request.getRequestURI(),
-                                null);
-
-                return ResponseEntity.badRequest().body(response);
+                return ResponseEntity.badRequest().body(
+                                new ApiErrorResponse(
+                                                400,
+                                                "BAD_REQUEST",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                null));
         }
 
+        // =========================
+        // 404 - Not Found
+        // =========================
         @ExceptionHandler(ProjectNotFoundException.class)
-        public ResponseEntity<ApiErrorResponse> handleProjectNotFound(
-                ProjectNotFoundException ex,
-                HttpServletRequest request
-        ) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiErrorResponse(
-                                404,
-                                "PROJECT_NOT_FOUND",
-                                ex.getMessage(),
-                                request.getRequestURI(),
-                                null
-                        ));
+        public ResponseEntity<ApiErrorResponse> handleNotFound(
+                        ProjectNotFoundException ex,
+                        HttpServletRequest request) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                                new ApiErrorResponse(
+                                                404,
+                                                "PROJECT_NOT_FOUND",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                null));
         }
 
+        // =========================
+        // 403 - Forbidden (ownership)
+        // =========================
         @ExceptionHandler(ProjectForbiddenException.class)
-        public ResponseEntity<ApiErrorResponse> handleProjectForbidden(
-                ProjectForbiddenException ex,
-                HttpServletRequest request
-        ) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ApiErrorResponse(
-                                403,
-                                "PROJECT_FORBIDDEN",
-                                ex.getMessage(),
-                                request.getRequestURI(),
-                                null
-                        ));
+        public ResponseEntity<ApiErrorResponse> handleForbidden(
+                        ProjectForbiddenException ex,
+                        HttpServletRequest request) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                                new ApiErrorResponse(
+                                                403,
+                                                "PROJECT_FORBIDDEN",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                null));
         }
 
-        // Optional: last safety net (JANGAN expose detail)
+        // =========================
+        // 500 - Safety Net (LAST!)
+        // =========================
         @ExceptionHandler(Exception.class)
-        public ResponseEntity<ApiErrorResponse> handleGenericException(
+        public ResponseEntity<ApiErrorResponse> handleUnexpected(
                         Exception ex,
                         HttpServletRequest request) {
-
-                ApiErrorResponse response = new ApiErrorResponse(
-                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                "INTERNAL_SERVER_ERROR",
-                                "Unexpected server error",
-                                request.getRequestURI(),
-                                null);
-
-                return ResponseEntity.internalServerError().body(response);
+                return ResponseEntity.internalServerError().body(
+                                new ApiErrorResponse(
+                                                500,
+                                                "INTERNAL_SERVER_ERROR",
+                                                "Unexpected server error",
+                                                request.getRequestURI(),
+                                                null));
         }
 }
