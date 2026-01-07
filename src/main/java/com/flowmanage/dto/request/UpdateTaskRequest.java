@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateTaskRequest(
 
-        @NotBlank @Size(max = 100) String title,
+        @Size(max = 100) String title,
 
         @Size(max = 500) String description,
 
-        @NotNull TaskStatus status) {
+        TaskStatus status) {
 }

@@ -88,9 +88,15 @@ public class TaskService {
         Task task = taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(TaskNotFoundException::new);
 
-        task.setTitle(title);
-        task.setDescription(description);
-        task.setStatus(status);
+        if (title != null) {
+            task.setTitle(title);
+        }
+        if (description != null) {
+            task.setDescription(description);
+        }
+        if (status != null) {
+            task.setStatus(status);
+        }
 
         return task; // Hibernate dirty checking
     }
