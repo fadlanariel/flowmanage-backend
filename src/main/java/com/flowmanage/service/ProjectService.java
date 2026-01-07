@@ -75,4 +75,16 @@ public class ProjectService {
         projectRepository.delete(project);
     }
 
+    @Transactional(readOnly = true)
+    public void validateOwnership(UUID projectId, UUID userId) {
+        if (projectRepository.existsByIdAndOwnerId(projectId, userId)) {
+            return;
+        }
+
+        if (projectRepository.existsById(projectId)) {
+            throw new ProjectForbiddenException();
+        }
+
+        throw new ProjectNotFoundException();
+    }
 }

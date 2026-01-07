@@ -2,9 +2,7 @@ package com.flowmanage.service;
 
 import com.flowmanage.entity.Task;
 import com.flowmanage.entity.TaskStatus;
-import com.flowmanage.exception.ProjectNotFoundException;
 import com.flowmanage.exception.TaskNotFoundException;
-import com.flowmanage.repository.ProjectRepository;
 import com.flowmanage.repository.TaskRepository;
 
 import org.springframework.stereotype.Service;
@@ -17,26 +15,13 @@ import java.util.UUID;
 public class TaskService {
     
     private final TaskRepository taskRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectService projectService;
 
     public TaskService(
-        TaskRepository taskRepository,
-        ProjectRepository projectRepository
-    ) {
+            TaskRepository taskRepository,
+            ProjectService projectService) {
         this.taskRepository = taskRepository;
-        this.projectRepository = projectRepository;
-    }
-    
-    /*
-     * ============================
-     * INTERNAL AUTH GUARD
-     * ============================
-     */
-
-    private void validateProjectOwnership(UUID projectId, UUID ownerId) {
-        if (!projectRepository.existsByIdAndOwnerId(projectId, ownerId)) {
-            throw new ProjectNotFoundException();
-        }
+        this.projectService = projectService;
     }
 
     /* ============================
@@ -50,13 +35,12 @@ public class TaskService {
         String title,
         String description
     ) {
-        validateProjectOwnership(projectId, userId);
+        projectService.validateOwnership(projectId, userId);
 
         Task task = new Task();
         task.setProjectId(projectId);
         task.setTitle(title);
         task.setDescription(description);
-        task.setStatus(TaskStatus.DONE);
 
         return taskRepository.save(task);
     }
@@ -68,10 +52,9 @@ public class TaskService {
      */
 
     @Transactional(readOnly = true)
-    public List<Task> getTasksByProject(
-            UUID projectId,
-            UUID userId) {
-        validateProjectOwnership(projectId, userId);
+    public List<Task> getTasksByProject(UUID projectId, UUID userId) {
+        projectService.validateOwnership(projectId, userId);
+
         return taskRepository.findAllByProjectId(projectId);
     }
 
@@ -80,7 +63,7 @@ public class TaskService {
             UUID projectId,
             UUID taskId,
             UUID userId) {
-        validateProjectOwnership(projectId, userId);
+        projectService.validateOwnership(projectId, userId);
 
         return taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(TaskNotFoundException::new);
@@ -99,21 +82,15 @@ public class TaskService {
             UUID userId,
             String title,
             String description,
-            Boolean completed) {
-        validateProjectOwnership(projectId, userId);
+            TaskStatus status) {
+        projectService.validateOwnership(projectId, userId);
 
         Task task = taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(TaskNotFoundException::new);
 
-        if (title != null) {
-            task.setTitle(title);
-        }
-        if (description != null) {
-            task.setDescription(description);
-        }
-        if (completed != null) {
-            task.setStatus(TaskStatus.DONE);
-        }
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setStatus(status);
 
         return task; // Hibernate dirty checking
     }
@@ -129,7 +106,7 @@ public class TaskService {
             UUID projectId,
             UUID taskId,
             UUID userId) {
-        validateProjectOwnership(projectId, userId);
+        projectService.validateOwnership(projectId, userId);
 
         Task task = taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(TaskNotFoundException::new);

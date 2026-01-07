@@ -1,12 +1,14 @@
 package com.flowmanage.controller;
 
 import com.flowmanage.dto.response.TaskResponse;
+import com.flowmanage.security.AuthenticatedUser;
 import com.flowmanage.dto.request.CreateTaskRequest;
 import com.flowmanage.dto.request.UpdateTaskRequest;
 import com.flowmanage.util.TaskMapper;
 import com.flowmanage.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,10 +33,12 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse createTask(
             @PathVariable UUID projectId,
-            @RequestBody @Valid CreateTaskRequest request) {
+            @RequestBody @Valid CreateTaskRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) {
         return TaskMapper.toResponse(
                 taskService.createTask(
                         projectId,
+                        user.getId(),
                         request.title(),
                         request.description()));
     }
@@ -45,8 +49,10 @@ public class TaskController {
      * =======================
      */
     @GetMapping
-    public List<TaskResponse> getTasks(@PathVariable UUID projectId) {
-        return taskService.getTasksByProject(projectId)
+    public List<TaskResponse> getTasks(
+            @PathVariable UUID projectId, 
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        return taskService.getTasksByProject(projectId, user.getId())
                 .stream()
                 .map(TaskMapper::toResponse)
                 .toList();
@@ -57,18 +63,23 @@ public class TaskController {
      * UPDATE
      * =======================
      */
-    @PutMapping("/{taskId}")
+    @PatchMapping("/{taskId}")
     public TaskResponse updateTask(
             @PathVariable UUID projectId,
             @PathVariable UUID taskId,
-            @RequestBody @Valid UpdateTaskRequest request) {
+            @RequestBody @Valid UpdateTaskRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user) 
+    {
         return TaskMapper.toResponse(
-                taskService.updateTask(
-                        taskId,
-                        projectId,
-                        request.title(),
-                        request.description(),
-                        request.status()));
+            taskService.updateTask(
+                projectId,
+                taskId,
+                user.getId(),
+                request.title(),
+                request.description(),
+                request.status()
+            )
+        );
     }
 
     /*
@@ -80,7 +91,8 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(
             @PathVariable UUID projectId,
-            @PathVariable UUID taskId) {
-        taskService.deleteTask(taskId, projectId);
+            @PathVariable UUID taskId,
+            @AuthenticationPrincipal AuthenticatedUser user) {
+        taskService.deleteTask(projectId, taskId, user.getId());
     }
 }
