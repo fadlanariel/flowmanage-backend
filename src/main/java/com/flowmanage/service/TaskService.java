@@ -5,6 +5,8 @@ import com.flowmanage.entity.TaskStatus;
 import com.flowmanage.exception.TaskNotFoundException;
 import com.flowmanage.repository.TaskRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,10 +54,10 @@ public class TaskService {
      */
 
     @Transactional(readOnly = true)
-    public List<Task> getTasksByProject(UUID projectId, UUID userId) {
+    public Page<Task> getTasksByProject(UUID projectId, UUID userId, Pageable pageable) {
         projectService.validateOwnership(projectId, userId);
 
-        return taskRepository.findAllByProjectId(projectId);
+        return taskRepository.findAllByProjectId(projectId, pageable);
     }
 
     @Transactional(readOnly = true)

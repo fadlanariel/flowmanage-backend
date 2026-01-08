@@ -7,9 +7,14 @@ import com.flowmanage.dto.request.UpdateTaskRequest;
 import com.flowmanage.util.TaskMapper;
 import com.flowmanage.service.TaskService;
 import jakarta.validation.Valid;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.UUID;
@@ -49,13 +54,16 @@ public class TaskController {
      * =======================
      */
     @GetMapping
-    public List<TaskResponse> getTasks(
+    public Page<TaskResponse> getTasks(
             @PathVariable UUID projectId, 
-            @AuthenticationPrincipal AuthenticatedUser user) {
-        return taskService.getTasksByProject(projectId, user.getId())
-                .stream()
-                .map(TaskMapper::toResponse)
-                .toList();
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @PageableDefault(
+            size = 10,
+            sort = "createdAt",
+            direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return taskService.getTasksByProject(projectId, user.getId(), pageable)
+                .map(TaskMapper::toResponse);
     }
 
     /*
