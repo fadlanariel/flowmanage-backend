@@ -3,6 +3,8 @@ package com.flowmanage.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.flowmanage.dto.request.CreateProjectRequest;
 import com.flowmanage.dto.request.UpdateProjectRequest;
+import com.flowmanage.dto.response.ApiResponse;
+import com.flowmanage.dto.response.PagedResponse;
 import com.flowmanage.dto.response.ProjectResponse;
 import com.flowmanage.entity.Project;
 import com.flowmanage.security.AuthenticatedUser;
@@ -40,13 +44,17 @@ public class ProjectController {
     }
 
     @GetMapping
-    public List<ProjectResponse> getMyProjects(
+    public ApiResponse<PagedResponse<ProjectResponse>> getMyProjects(
+        Pageable pageable,
         @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        return projectService.getMyProjects(user.getId())
-            .stream()
-            .map(ProjectResponse::from)
-            .toList();
+        Page<ProjectResponse> page =
+            projectService.getMyProjects(user.getId(), pageable)
+                .map(ProjectResponse::from);
+
+        return new ApiResponse<>(
+            PagedResponse.from(page)
+        );
     }
 
     @PostMapping

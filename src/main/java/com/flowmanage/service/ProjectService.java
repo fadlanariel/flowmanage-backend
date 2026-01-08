@@ -3,6 +3,8 @@ package com.flowmanage.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +34,8 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<Project> getMyProjects(UUID userId) {
-        return projectRepository.findAllByOwnerId(userId);
+    public Page<Project> getMyProjects(UUID userId, Pageable pageable) {
+        return projectRepository.findAllByOwnerId(userId, pageable);
     }
 
     @Transactional
