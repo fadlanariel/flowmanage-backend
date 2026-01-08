@@ -1,6 +1,5 @@
 package com.flowmanage.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -23,8 +22,11 @@ import com.flowmanage.security.AuthenticatedUser;
 import com.flowmanage.security.SecurityUtils;
 import com.flowmanage.service.ProjectService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Projects")
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
@@ -34,6 +36,7 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
+    @Operation(summary = "Get project by ID")
     @GetMapping("/{id}")
     public ResponseEntity<Project> getProjectById(@PathVariable UUID id) {
         AuthenticatedUser user = SecurityUtils.getCurrentUser();
@@ -46,6 +49,7 @@ public class ProjectController {
         return ResponseEntity.ok(project);
     }
 
+    @Operation(summary = "Get paginated list of users projects")
     @GetMapping
     public ApiResponse<PagedResponse<ProjectResponse>> getMyProjects(
         Pageable pageable,
@@ -64,6 +68,7 @@ public class ProjectController {
                 PagedResponse.from(page));
     }
 
+    @Operation(summary = "Create a new project")
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(
         @Valid @RequestBody CreateProjectRequest request
@@ -84,6 +89,7 @@ public class ProjectController {
             ));
     }        
 
+    @Operation(summary = "Update an existing project")
     @PatchMapping("/{projectId}")
     public ProjectResponse updateProject(
             @PathVariable UUID projectId,
@@ -100,6 +106,7 @@ public class ProjectController {
         return ProjectResponse.from(project);
     }
 
+    @Operation(summary = "Delete a project")
     @DeleteMapping("/{projectId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProject(

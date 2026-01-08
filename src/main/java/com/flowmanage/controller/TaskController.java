@@ -9,6 +9,10 @@ import com.flowmanage.common.PaginationConstants;
 import com.flowmanage.dto.request.CreateTaskRequest;
 import com.flowmanage.dto.request.UpdateTaskRequest;
 import com.flowmanage.util.TaskMapper;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.flowmanage.service.TaskService;
 import jakarta.validation.Valid;
 
@@ -20,9 +24,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Sort;
 
-import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Tasks")
 @RestController
 @RequestMapping("/api/projects/{projectId}/tasks")
 public class TaskController {
@@ -38,6 +42,7 @@ public class TaskController {
      * CREATE
      * =======================
      */
+    @Operation(summary = "Create a new task in a project")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse createTask(
@@ -57,6 +62,7 @@ public class TaskController {
      * LIST
      * =======================
      */
+    @Operation(summary = "Get paginated list of tasks in a project")
     @GetMapping
     public ApiResponse<PagedResponse<TaskResponse>> getTasks(
             @PathVariable UUID projectId,
@@ -84,6 +90,7 @@ public class TaskController {
      * UPDATE
      * =======================
      */
+    @Operation(summary = "Update an existing task in a project")
     @PatchMapping("/{taskId}")
     public TaskResponse updateTask(
             @PathVariable UUID projectId,
@@ -108,6 +115,7 @@ public class TaskController {
      * DELETE
      * =======================
      */
+    @Operation(summary = "Delete a task from a project")
     @DeleteMapping("/{taskId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTask(
