@@ -4,6 +4,8 @@ import com.flowmanage.dto.response.ApiResponse;
 import com.flowmanage.dto.response.PagedResponse;
 import com.flowmanage.dto.response.TaskResponse;
 import com.flowmanage.security.AuthenticatedUser;
+import com.flowmanage.common.PageableUtil;
+import com.flowmanage.common.PaginationConstants;
 import com.flowmanage.dto.request.CreateTaskRequest;
 import com.flowmanage.dto.request.UpdateTaskRequest;
 import com.flowmanage.util.TaskMapper;
@@ -59,10 +61,16 @@ public class TaskController {
     public ApiResponse<PagedResponse<TaskResponse>> getTasks(
             @PathVariable UUID projectId,
             Pageable pageable,
-            @AuthenticationPrincipal AuthenticatedUser user) {
-
+            @AuthenticationPrincipal AuthenticatedUser user) 
+    {
+        Pageable sanitized = PageableUtil.sanitize(
+                pageable,
+                PaginationConstants.DEFAULT_SORT_FIELD,
+                Sort.Direction.DESC,
+                PaginationConstants.PROJECT_SORT_FIELDS);
+        
         Page<TaskResponse> page =
-                taskService.getTasksByProject(projectId, user.getId(), pageable)
+                taskService.getTasksByProject(projectId, user.getId(), sanitized)
                         .map(TaskMapper::toResponse);
 
         return new ApiResponse<>(
