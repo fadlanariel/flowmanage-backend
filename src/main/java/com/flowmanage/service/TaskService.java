@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,12 +17,15 @@ public class TaskService {
     
     private final TaskRepository taskRepository;
     private final ProjectService projectService;
+    private final AuditLogService auditLogService;
 
     public TaskService(
             TaskRepository taskRepository,
-            ProjectService projectService) {
+            ProjectService projectService,
+            AuditLogService auditLogService) {
         this.taskRepository = taskRepository;
         this.projectService = projectService;
+        this.auditLogService = auditLogService;
     }
 
     /* ============================
@@ -44,7 +46,11 @@ public class TaskService {
         task.setTitle(title);
         task.setDescription(description);
 
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+
+        auditLogService.logTaskCreated(userId, projectId, saved.getId());
+
+        return saved;
     }
     
     /*
@@ -100,6 +106,8 @@ public class TaskService {
             task.setStatus(status);
         }
 
+        auditLogService.logTaskUpdated(userId, projectId, taskId);
+
         return task; // Hibernate dirty checking
     }
 
@@ -120,5 +128,7 @@ public class TaskService {
                 .orElseThrow(TaskNotFoundException::new);
 
         taskRepository.delete(task);
+
+        auditLogService.logTaskDeleted(userId, projectId, taskId);
     }
 }

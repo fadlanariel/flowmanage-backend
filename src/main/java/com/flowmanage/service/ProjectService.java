@@ -1,6 +1,5 @@
 package com.flowmanage.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -16,9 +15,11 @@ import com.flowmanage.repository.ProjectRepository;
 @Service
 public class ProjectService {
     private final ProjectRepository projectRepository;
-    
-    public ProjectService(ProjectRepository projectRepository) {
+    private final AuditLogService auditLogService;
+
+    public ProjectService(ProjectRepository projectRepository, AuditLogService auditLogService) {
         this.projectRepository = projectRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +50,11 @@ public class ProjectService {
         project.setName(name);
         project.setDescription(description);
         
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+
+        auditLogService.logProjectCreated(ownerId, saved.getId());
+
+        return saved;
     }
 
     @Transactional
@@ -68,6 +73,8 @@ public class ProjectService {
             project.setDescription(description);
         }
 
+        auditLogService.logProjectUpdated(userId, projectId);
+
         return projectRepository.save(project);
     }
 
@@ -75,6 +82,8 @@ public class ProjectService {
     public void deleteProject(UUID projectId, UUID userId) {
         Project project = getProjectById(projectId, userId);
         projectRepository.delete(project);
+
+        auditLogService.logProjectDeleted(userId, projectId);
     }
 
     @Transactional(readOnly = true)
