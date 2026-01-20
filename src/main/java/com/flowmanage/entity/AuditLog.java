@@ -29,8 +29,9 @@ public class AuditLog {
     @Column(nullable = false)
     private AuditAction action;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
-    private String entityType;
+    private EntityType entityType;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
