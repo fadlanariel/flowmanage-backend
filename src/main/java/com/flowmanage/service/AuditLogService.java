@@ -1,11 +1,15 @@
 package com.flowmanage.service;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.flowmanage.common.PageableUtil;
 import com.flowmanage.entity.AuditAction;
 import com.flowmanage.entity.AuditLog;
 import com.flowmanage.entity.EntityType;
@@ -83,4 +87,43 @@ public class AuditLogService {
 
         auditLogRepository.save(log);
     }
+
+    /*
+     * =========================
+     * READS
+     * =========================
+     */
+    @Transactional(readOnly = true)
+    public Page<AuditLog> getAuditLogs(
+            UUID projectId,
+            UUID taskId,
+            UUID userId,
+            AuditAction action,
+            Pageable pageable
+    ) {
+        Specification<AuditLog> spec = Specification.where(null);
+
+        if (projectId != null) {
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(root.get("projectId"), projectId));
+        }
+
+        if (taskId != null) {
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(root.get("taskId"), taskId));
+        }
+
+        if (userId != null) {
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(root.get("userId"), userId));
+        }
+
+        if (action != null) {
+            spec = spec.and((root, q, cb) ->
+                    cb.equal(root.get("action"), action));
+        }
+
+        return auditLogRepository.findAll(spec, pageable);
+    }
+
 }

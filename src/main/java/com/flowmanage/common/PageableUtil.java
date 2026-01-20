@@ -1,6 +1,7 @@
 package com.flowmanage.common;
 
 import org.springframework.data.domain.*;
+import java.util.Set;
 
 public class PageableUtil {
 
@@ -8,7 +9,8 @@ public class PageableUtil {
             Pageable pageable,
             String defaultSortField,
             Sort.Direction defaultDirection,
-            Iterable<String> allowedSortFields) {
+            Set<String> allowedSortFields) {
+
         int page = Math.max(pageable.getPageNumber(), PaginationConstants.DEFAULT_PAGE);
 
         int size = pageable.getPageSize();
@@ -18,18 +20,20 @@ public class PageableUtil {
             size = PaginationConstants.MAX_SIZE;
         }
 
-        Sort sort = pageable.getSort().stream()
-                .filter(order -> {
-                    for (String allowed : allowedSortFields) {
-                        if (allowed.equals(order.getProperty())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .findFirst()
-                .map(order -> Sort.by(order.getDirection(), order.getProperty()))
-                .orElse(Sort.by(defaultDirection, defaultSortField));
+        Sort sort = Sort.unsorted();
+
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                if (allowedSortFields.contains(order.getProperty())) {
+                    sort = Sort.by(order.getDirection(), order.getProperty());
+                    break;
+                }
+            }
+        }
+
+        if (sort.isUnsorted()) {
+            sort = Sort.by(defaultDirection, defaultSortField);
+        }
 
         return PageRequest.of(page, size, sort);
     }
